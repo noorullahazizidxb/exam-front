@@ -3,6 +3,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
 import { register } from '../services/api';
+import { toast } from 'react-hot-toast';
 
 const Register = ({ history }) => {
   const formik = useFormik({
@@ -17,8 +18,10 @@ const Register = ({ history }) => {
     onSubmit: async (values) => {
       try {
         await register(values);
+        toast.success('Registration successful!');
         history.push('/login');
       } catch (error) {
+        toast.error('Registration failed.');
         console.error(error);
       }
     },

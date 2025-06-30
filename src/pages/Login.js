@@ -3,6 +3,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
 import { login } from '../services/api';
+import { toast } from 'react-hot-toast';
 
 const Login = ({ history }) => {
   const formik = useFormik({
@@ -18,8 +19,10 @@ const Login = ({ history }) => {
       try {
         const { data } = await login(values);
         localStorage.setItem('token', data.token);
+        toast.success('Login successful!');
         history.push('/notifications');
       } catch (error) {
+        toast.error('Login failed.');
         console.error(error);
       }
     },
