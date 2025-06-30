@@ -1,24 +1,29 @@
 import axios from 'axios';
 
-const usersApi = axios.create({
-  baseURL: 'http://localhost:3000/api',
+const api = axios.create({
+  baseURL: 'http://localhost:8080',
 });
 
-const notificationsApi = axios.create({
-  baseURL: 'http://localhost:3001/api',
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
-const getToken = () => localStorage.getItem('token');
+export const register = (userData) => api.post('/users/register', userData);
 
-const getAuthHeaders = () => ({
-  headers: {
-    Authorization: `Bearer ${getToken()}`,
-  },
-});
+export const login = async (credentials) => {
+  const response = await api.post('/users/login', credentials);
+  if (response.data.token) {
+    localStorage.setItem('token', response.data.token);
+  }
+  return response;
+};
 
-export const register = (userData) => usersApi.post('/users/register', userData);
-export const login = (credentials) => usersApi.post('/users/login', credentials);
+export const getNotifications = () => api.get('/notifications');
+export const createNotification = (notificationData) => api.post('/notifications', notificationData);
+export const markAsRead = (id) => api.put(`/notifications/${id}/read`);
 
-export const createNotification = (notificationData) => notificationsApi.post('/notifications', notificationData, getAuthHeaders());
-export const getNotifications = () => notificationsApi.get('/notifications', getAuthHeaders());
-export const markAsRead = (id) => notificationsApi.put(`/notifications/${id}/read`, {}, getAuthHeaders());
+export default api;
