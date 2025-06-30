@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { getNotifications, markAsRead } from '../services/api';
-import NotificationForm from '../components/NotificationForm';
+import React, { useEffect, useState } from 'react';
+import { getNotifications, createNotification, markAsRead } from '../services/api';
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const { data } = await getNotifications();
-        setNotifications(data);
+        const response = await getNotifications();
+        setNotifications(response.data);
       } catch (error) {
         console.error(error);
       }
@@ -18,50 +17,47 @@ const Notifications = () => {
     fetchNotifications();
   }, []);
 
+  const handleCreateNotification = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await createNotification({ message });
+      setNotifications([...notifications, response.data]);
+      setMessage('');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleMarkAsRead = async (id) => {
     try {
       await markAsRead(id);
-      setNotifications(notifications.map((n) => (n.id === id ? { ...n, read: true } : n)));
+      setNotifications(notifications.map(n => n._id === id ? { ...n, read: true } : n));
     } catch (error) {
       console.error(error);
     }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="container mx-auto p-4"
-    >
-      <NotificationForm />
-      <AnimatePresence>
-        <ul className="space-y-4 mt-6">
-          {notifications.map((notification) => (
-            <motion.li
-              key={notification.id}
-              layout
-              initial={{ opacity: 0, y: 50, scale: 0.3 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-              className={`p-4 rounded-lg shadow-md ${notification.read ? 'bg-gray-200' : 'bg-white'}`}
-            >
-              <div className="flex justify-between items-center">
-                <p>{notification.message}</p>
-                {!notification.read && (
-                  <button
-                    onClick={() => handleMarkAsRead(notification.id)}
-                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                  >
-                    Mark as Read
-                  </button>
-                )}
-              </div>
-            </motion.li>
-          ))}
-        </ul>
-      </AnimatePresence>
-    </motion.div>
+    <div>
+      <h2>Notifications</h2>
+      <form onSubmit={handleCreateNotification}>
+        <input
+          type="text"
+          placeholder="New notification"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+        <button type="submit">Create</button>
+      </form>
+      <ul>
+        {notifications.map((notification) => (
+          <li key={notification._id} style={{ textDecoration: notification.read ? 'line-through' : 'none' }}>
+            {notification.message}
+            {!notification.read && <button onClick={() => handleMarkAsRead(notification._id)}>Mark as read</button>}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };
 

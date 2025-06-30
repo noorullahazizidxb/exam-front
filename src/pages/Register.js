@@ -1,68 +1,45 @@
-import React from 'react';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
 import { register } from '../services/api';
-import { toast } from 'react-hot-toast';
 
-const Register = ({ history }) => {
-  const formik = useFormik({
-    initialValues: {
-      username: '',
-      password: '',
-    },
-    validationSchema: Yup.object({
-      username: Yup.string().required('Required'),
-      password: Yup.string().min(6, 'Must be at least 6 characters').required('Required'),
-    }),
-    onSubmit: async (values) => {
-      try {
-        await register(values);
-        toast.success('Registration successful!');
-        history.push('/login');
-      } catch (error) {
-        toast.error('Registration failed.');
-        console.error(error);
-      }
-    },
-  });
+const Register = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('user');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await register({ username, password, role });
+      alert('Registration successful');
+    } catch (error) {
+      console.error(error);
+      alert('Registration failed');
+    }
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -50 }}
-      className="flex items-center justify-center h-screen bg-gray-100"
-    >
-      <form onSubmit={formik.handleSubmit} className="bg-white p-8 rounded shadow-md w-96">
-        <h2 className="text-2xl font-bold mb-6">Register</h2>
-        <div className="mb-4">
-          <input
-            type="text"
-            name="username"
-            {...formik.getFieldProps('username')}
-            placeholder="Username"
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-          {formik.touched.username && formik.errors.username ? (
-            <div className="text-red-500 text-sm">{formik.errors.username}</div>
-          ) : null}
-        </div>
-        <div className="mb-6">
-          <input
-            type="password"
-            name="password"
-            {...formik.getFieldProps('password')}
-            placeholder="Password"
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-          {formik.touched.password && formik.errors.password ? (
-            <div className="text-red-500 text-sm">{formik.errors.password}</div>
-          ) : null}
-        </div>
-        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Register</button>
-      </form>
-    </motion.div>
+    <form onSubmit={handleSubmit}>
+      <h2>Register</h2>
+      <input
+        type="text"
+        placeholder="Username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Role"
+        value={role}
+        onChange={(e) => setRole(e.target.value)}
+      />
+      <button type="submit">Register</button>
+    </form>
   );
 };
 
